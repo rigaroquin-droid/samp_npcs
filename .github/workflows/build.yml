@@ -6,7 +6,7 @@ on:
 jobs:
   build-linux:
     name: Build Server (Linux)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -16,11 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y --fix-missing \
-            gcc-multilib \
-            g++-multilib \
-            python3-pip \
-            libc6-dev-i386
+          sudo apt-get install -y gcc-multilib g++-multilib python3-pip
 
       - name: Install Conan
         run: pip3 install "conan<2.0"
