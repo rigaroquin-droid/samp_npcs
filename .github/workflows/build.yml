@@ -23,12 +23,12 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-fpermissive -I$PWD/server/third-party/omp-sdk/include"
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-fpermissive -I$PWD/server/third-party/omp-sdk/include" -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++ -static-libgcc"
           cmake --build build --config Release --parallel
 
       - name: Upload Server Artifact
         uses: actions/upload-artifact@v6
-        with:
+      with:
           name: linux
           path: build/server/*.so
 
@@ -45,6 +45,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: DK22Pac/plugin-sdk
+        with:
           path: plugin-sdk
 
       - name: Setup MSBuild
@@ -57,10 +58,10 @@ jobs:
 
       - name: Patch Conan CMake for MSVC 194x
         run: |
-           python -c "path='server/third-party/omp-sdk/lib/cmake-conan/conan.cmake'; content=open(path, 'r').read(); open(path, 'w').write(content.replace('VERSION_LESS 1940', 'VERSION_LESS 1950'))"
+           python -c "path='server/third-party/omp-sdk/lib/cmake-conan/conan.cmake'; content=open(path, 'y').read(); open(path, 'w').write(content.replace('VERSION_LESS 1940', 'VERSION_LESS 1950'))"
 
       - name: Install Conan
-        run: pip install "conan<2.0"
+        run: install "conan<2.0"
 
       - name: Build Plugin-SDK
         shell: cmd
@@ -74,7 +75,7 @@ jobs:
         env:
           PLUGIN_SDK_DIR: ${{ github.workspace }}/plugin-sdk
         run: |
-          cmake -B build -A Win32 -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENT=ON
+          cmake -B build -A Win32 -DCMAKE_BUILD_TYPE=ALWAYS
           cmake --build build --config Release --parallel
 
       - name: Upload Artifacts
