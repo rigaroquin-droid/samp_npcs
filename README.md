@@ -395,4 +395,3 @@ Contributions are welcomed. Feel free to fork the repository, commit changes and
 BlastHack thread: https://www.blast.hk/threads/247132/    
 open.mp: https://github.com/openmultiplayer/open.mp/    
 plugin-sdk: https://github.com/DK22Pac/plugin-sdk
-.
