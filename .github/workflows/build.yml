@@ -7,32 +7,36 @@ on:
 jobs:
   build-linux:
     name: Build Server (Linux - Compatible)
-    # ВАЖНО: Меняем на 18.04, чтобы версия glibc совпадала с большинством хостингов
-    runs-on: ubuntu-18.04
+    # 18.04 больше не существует — собираем на 22.04, но GCC 9, чтобы glibc был совместим со старыми хостингами
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc-9
+      CXX: g++-9
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Install dependencies
         run: |
           sudo apt-get update -y
-          # На 18.04 пакеты могут называться иначе, ставим базовые
-          sudo apt-get install -y build-essential gcc-multilib g++-multilib python3-pip
+          sudo apt-get install -y build-essential gcc-9 g++-9 gcc-9-multilib g++-9-multilib
 
       - name: Install Conan
         run: pip3 install "conan<2.0"
 
       - name: Configure and Build
         run: |
-          # Убираем флаги статической линковки libstdc++, они не решат проблему glibc
-          # Но оставляем -fpermissive и путь к include
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-fpermissive -I\$PWD/server/third-party/omp-sdk/include"
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-fpermissive -I$PWD/server/third-party/omp-sdk/include"
           cmake --build build --config Release --parallel
 
+      - name: Check GLIBC compatibility
+        run: |
+          objdump -T build/server/*.so | grep GLIBC_ | sort -u
+
       - name: Upload Server Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: linux
           path: build/server/*.so
@@ -42,12 +46,12 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Checkout Plugin-SDK
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           repository: DK22Pac/plugin-sdk
           path: plugin-sdk
@@ -77,13 +81,13 @@ jobs:
 
       - name: Configure and Build
         env:
-          PLUGIN_SDK_DIR: \${{ github.workspace }}/plugin-sdk
+          PLUGIN_SDK_DIR: ${{ github.workspace }}/plugin-sdk
         run: |
           cmake -B build -A Win32 -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENT=ON
           cmake --build build --config Release --parallel
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: windows
           path: |
